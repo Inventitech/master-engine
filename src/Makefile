@@ -2,7 +2,7 @@ CXXFLAGS =	-O2 -g -Wall -fmessage-length=0
 
 OBJS =		mengine.o
 
-LIBS =
+LIBS = -lglfw -lGLEW -lGL -lGLU
 
 TARGET =	mengine.a
 

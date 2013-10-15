@@ -2,7 +2,7 @@ CXXFLAGS =	-O2 -g -Wall -fmessage-length=0
 
 OBJS =		mengine.o
 
-LIBS =
+LIBS = -lglfw -lGLEW -lGL -lGLU
 
 TARGET =	mengine.a
 
@@ -12,9 +12,9 @@ force_look :
 
 $(TARGET):	$(OBJS)
 	$(CXX) -o $(TARGET) src/$(OBJS) $(LIBS)
-	
+
 mengine.o:	force_look
-	cd src; make 
+	cd src; make
 
 all:	$(TARGET)
 
