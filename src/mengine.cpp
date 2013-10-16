@@ -11,12 +11,13 @@
 #include "shader.h"
 #include "triangle.h"
 #include "window.h"
+#include "shaderprogram.h"
 
 using namespace glm;
 
-GLuint program;
 GLint attribute_coord3d, attribute_v_color;
 Window* window;
+ShaderProgram* shaderProgram;
 GLuint vbo_cube_vertices, vbo_cube_colors;
 GLuint ibo_cube_elements;
 GLint uniform_mvp;
@@ -64,8 +65,7 @@ bool initGL() {
 
 bool initData() {
 
-
-	program = LoadShaders("src/shaders/vertexshader.glsl",
+	shaderProgram = new ShaderProgram("src/shaders/vertexshader.glsl",
 			"src/shaders/fragmentshader.glsl");
 
 	GLfloat cube_vertices[] =
@@ -112,11 +112,13 @@ bool initData() {
 
 	// Setup vertex shader attribute
 	const char* attribute_name = "coord3d";
-	attribute_coord3d = glGetAttribLocation(program, attribute_name);
+	attribute_coord3d = glGetAttribLocation(shaderProgram->getProgram(), attribute_name);
 	if (attribute_coord3d == -1) {
 		fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
 		return false;
 	}
+
+	GLuint program = shaderProgram->getProgram();
 
 	// Setup vertex shader attribute
 	attribute_name = "v_color";
@@ -162,7 +164,7 @@ void render() {
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glUseProgram(program);
+	glUseProgram(shaderProgram->getProgram());
 
 	glEnableVertexAttribArray(attribute_v_color);
 	glEnableVertexAttribArray(attribute_coord3d);
@@ -199,7 +201,7 @@ void render() {
 }
 
 void freeMemory() {
-	glDeleteProgram(program);
+	delete shaderProgram;
 	delete window;
 }
 
