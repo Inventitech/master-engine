@@ -22,7 +22,7 @@ Window* window;
 ShaderProgram* shaderProgram;
 GLuint vbo_cube_vertices, vbo_cube_colors, vbo_cube_texcoords;
 GLuint ibo_cube_elements;
-GLint uniform_mvp;
+GLint uniform_m;
 GLuint texture_id;
 GLint uniform_mytexture;
 FMOD::System *fmodsystem; //handle to FMOD engine
@@ -71,6 +71,29 @@ bool initGL() {
 	}
 
 	return true;
+}
+
+/**
+ * Binds the specified attribute name to the given shader program.
+ */
+bool bindAttribute(GLuint program, const char* attributeName,
+		GLint& attribute) {
+	attribute = glGetAttribLocation(program, attributeName);
+	if (attribute == -1) {
+		fprintf(stderr, "Could not bind attribute %s\n", attributeName);
+		return false;
+	}
+	return true;
+}
+
+bool bindUniform(GLuint program, const char* uniformName, GLint& uniform) {
+	uniform = glGetUniformLocation(program, uniformName);
+	if (uniform == -1) {
+		fprintf(stderr, "Could not bind uniform %s\n", uniformName);
+		return false;
+	}
+	return true;
+
 }
 
 bool initData() {
@@ -134,42 +157,20 @@ bool initData() {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_texcoords), cube_texcoords,
 	GL_STATIC_DRAW);
 
-	/* load an image file directly as a new OpenGL texture */
-	GLuint tex_2d = SOIL_load_OGL_texture
-		(
-			"res/texture.jpg",
-			SOIL_LOAD_AUTO,
+	texture_id = SOIL_load_OGL_texture("res/texture.jpg", SOIL_LOAD_AUTO,
 			SOIL_CREATE_NEW_ID,
-			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
-		);
+			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB
+					| SOIL_FLAG_COMPRESS_TO_DXT);
 
 	GLuint program = shaderProgram->getProgram();
+	bool bindSuccessfull = true;
+	bindSuccessfull &= bindAttribute(program, "coord3d", attribute_coord3d);
+	bindSuccessfull &= bindAttribute(program, "texcoord", attribute_texcoord);
+	bindSuccessfull &= bindUniform(program, "mvp", uniform_m);
+	bindSuccessfull &= bindUniform(program, "mytexture", uniform_mytexture);
 
-	const char* attribute_name;
-	attribute_name = "coord3d";
-	attribute_coord3d = glGetAttribLocation(program, attribute_name);
-	if (attribute_coord3d == -1) {
-		fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
-		return 0;
-	}
-	attribute_name = "texcoord";
-	attribute_texcoord = glGetAttribLocation(program, attribute_name);
-	if (attribute_texcoord == -1) {
-		fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
-		return 0;
-	}
-	const char* uniform_name;
-	uniform_name = "mvp";
-	uniform_mvp = glGetUniformLocation(program, uniform_name);
-	if (uniform_mvp == -1) {
-		fprintf(stderr, "Could not bind uniform %s\n", uniform_name);
-		return 0;
-	}
-	uniform_name = "mytexture";
-	uniform_mytexture = glGetUniformLocation(program, uniform_name);
-	if (uniform_mytexture == -1) {
-		fprintf(stderr, "Could not bind uniform %s\n", uniform_name);
-		return 0;
+	if (!bindSuccessfull) {
+		return EXIT_FAILURE;
 	}
 
 	return true;
@@ -194,7 +195,7 @@ void render() {
 			1.0f * window->xSize / window->ySize, 0.1f, 10.0f);
 	glm::mat4 mvp = projection * view * model * anim;
 
-	glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
+	glUniformMatrix4fv(uniform_m, 1, GL_FALSE, glm::value_ptr(mvp));
 
 	// Enable alpha
 	glEnable(GL_BLEND);
