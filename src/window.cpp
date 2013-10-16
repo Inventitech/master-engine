@@ -7,11 +7,8 @@
 
 #include "window.h"
 
-Window::Window(int xSize, int ySize, const char* title) {
-	this->xSize = xSize;
-	this->ySize = ySize;
-	this->title = title;
-	this->fullScreen = fullScreen;
+Window::Window(int xSize, int ySize, const char* title) :
+		xSize(xSize), ySize(ySize), title(title) {
 	setup();
 }
 
@@ -21,7 +18,8 @@ Window::~Window() {
 
 bool Window::setup() {
 	// Open a window and create its OpenGL context
-	window = glfwCreateWindow(this->xSize, this->ySize, this->title, NULL, NULL);
+	window = glfwCreateWindow(this->xSize, this->ySize, this->title, NULL,
+			NULL);
 	if (window == NULL) {
 		glfwTerminate();
 		return false;
@@ -32,5 +30,4 @@ bool Window::setup() {
 
 	return true;
 }
-
 

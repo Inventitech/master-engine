@@ -15,14 +15,11 @@ class Window {
 	GLFWwindow* window;
 	int xSize, ySize;
 	const char* title;
-	bool fullScreen;
 	bool setup();
 public:
 	Window(int xSize, int ySize, const char* title);
 	GLFWwindow* getGLFWWindow() { return this->window; };
 	virtual ~Window();
-
-
 };
 
 #endif /* WINDOW_H_ */
