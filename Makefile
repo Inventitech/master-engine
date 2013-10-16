@@ -1,19 +1,20 @@
 CXXFLAGS =	-O2 -g -Wall -fmessage-length=0
 
-OBJS =		mengine.o
+OBJS =		mengine.a
 
 LIBS = -lglfw -lGLEW -lGL -lGLU
 
-TARGET =	mengine.a
+TARGET =	mengine
 
 
 force_look :
 	true
 
 $(TARGET):	$(OBJS)
-	$(CXX) -o $(TARGET) src/$(OBJS) $(LIBS)
+	cp src/mengine.a mengine
+	#$(CXX) -o $(TARGET) src/$(OBJS) $(LIBS)
 
-mengine.o:	force_look
+mengine.a:	force_look
 	cd src; make
 
 all:	$(TARGET)
