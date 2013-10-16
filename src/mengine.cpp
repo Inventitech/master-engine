@@ -24,26 +24,7 @@ GLint uniform_mvp;
 GLuint texture_id;
 GLint uniform_mytexture;
 
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-static void error_callback(int error, const char* description) {
-	fputs(description, stderr);
-}
-
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-static void key_callback(GLFWwindow* window, int key, int scancode, int action,
-		int mods) {
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GL_TRUE);
-}
-
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-static void window_callback(GLFWwindow* window, int width, int height) {
-	glViewport(0, 0, width, height);
-}
-
 bool initGL() {
-
-	glfwSetErrorCallback(error_callback);
 	glfwInit();
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
@@ -62,13 +43,6 @@ bool initGL() {
 				"Error: your graphic card does not support OpenGL 2.0\n");
 		return false;
 	}
-
-	// Ensure we can capture the escape key being pressed below
-	glfwSetInputMode(window->getGLFWWindow(), GLFW_STICKY_KEYS, GL_TRUE);
-
-	glfwSetKeyCallback(window->getGLFWWindow(), key_callback);
-
-	glfwSetWindowSizeCallback(window->getGLFWWindow(), window_callback);
 
 	return true;
 }
