@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <SOIL/SOIL.h>
 
 #include "triangle.h"
 #include "window.h"
@@ -48,7 +49,6 @@ bool initGL() {
 }
 
 bool initData() {
-
 	shaderProgram = new ShaderProgram("src/shaders/vertexshader.glsl",
 			"src/shaders/fragmentshader.glsl");
 
@@ -109,18 +109,14 @@ bool initData() {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_texcoords), cube_texcoords,
 	GL_STATIC_DRAW);
 
-	glGenTextures(1, &texture_id);
-	glBindTexture(GL_TEXTURE_2D, texture_id);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, // target
-			0,  // level, 0 = base, no minimap,
-			GL_RGB, // internalformat
-			gimp_image.width,  // width
-			gimp_image.height,  // height
-			0,  // border, always 0 in OpenGL ES
-			GL_RGB,  // format
-			GL_UNSIGNED_BYTE, // type
-			gimp_image.pixel_data);
+	/* load an image file directly as a new OpenGL texture */
+	GLuint tex_2d = SOIL_load_OGL_texture
+		(
+			"res/texture.jpg",
+			SOIL_LOAD_AUTO,
+			SOIL_CREATE_NEW_ID,
+			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
+		);
 
 	GLuint program = shaderProgram->getProgram();
 
