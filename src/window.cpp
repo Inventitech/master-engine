@@ -10,7 +10,7 @@ Window::~Window() {
 }
 
 /**
- * Sets up an OpenGL-enabled window with GLFW. If the window could not be created, returns false.
+ * Sets up an OpeanGL-enabled window with GLFW. If the window could not be created, returns false.
  */
 bool Window::setup() {
 	window = glfwCreateWindow(this->xSize, this->ySize, this->title, NULL,
@@ -19,7 +19,6 @@ bool Window::setup() {
 		glfwTerminate();
 		return false;
 	}
-
 	glfwMakeContextCurrent(window); // create OpenGL context
 
 	return true;
