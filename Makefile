@@ -1,5 +1,8 @@
-all: 
-	doxygen Doxyfile > /dev/null ; scons
+all: doc
+	scons
+	
+doc:
+	doxygen Doxyfile > /dev/null	
 	
 clean:
 	scons -c; rm doc/* -r
