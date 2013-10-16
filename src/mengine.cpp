@@ -151,7 +151,6 @@ void render() {
 			1.0f * window->xSize / window->ySize, 0.1f, 10.0f);
 	glm::mat4 mvp = projection * view * model * anim;
 
-	glUseProgram(program);
 	glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
 
 	// Enable alpha
