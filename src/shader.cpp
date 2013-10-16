@@ -99,6 +99,7 @@ GLuint LoadShaders(const char * vertex_file_path,
 
 	glDeleteShader(VertexShaderID);
 	glDeleteShader(FragmentShaderID);
+	printf("Done\n");
 
 	return ProgramID;
 }
