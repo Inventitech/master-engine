@@ -15,6 +15,8 @@ class ShaderProgram {
 	const char * vertexShaderFile;
 	const char * fragmentShaderFile;
 	std::string loadShaderContent(const char* file);
+	bool compileShader(const std::string&, GLuint);
+
 	GLuint program;
 public:
 	ShaderProgram();
