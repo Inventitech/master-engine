@@ -10,14 +10,15 @@
 
 #include "shader.h"
 #include "triangle.h"
+#include "window.h"
 
 using namespace glm;
 
 GLuint program;
 GLint attribute_coord3d, attribute_v_color;
 GLuint vbo_triangle, vbo_triangle_colors;
-GLFWwindow* window;
 GLint uniform_m_transform;
+Window* window;
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 static void error_callback(int error, const char* description) {
@@ -32,21 +33,14 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action,
 }
 
 bool initGL() {
+
 	glfwSetErrorCallback(error_callback);
 	glfwInit();
-
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 
-	// Open a window and create its OpenGL context
-	window = glfwCreateWindow(640, 480, "My Title", NULL, NULL);
-	if (window == NULL) {
-		glfwTerminate();
-		return false;
-	}
-
-	glfwMakeContextCurrent(window);
+	window = new Window(640,480,"Master Engine!111");
 
 	// Initialize GLEW
 	GLenum err = glewInit();
@@ -60,12 +54,10 @@ bool initGL() {
 		return false;
 	}
 
-	glfwSetWindowTitle(window, "Master Engine!111");
-
 	// Ensure we can capture the escape key being pressed below
-	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+	glfwSetInputMode(window->getGLFWWindow(), GLFW_STICKY_KEYS, GL_TRUE);
 
-	glfwSetKeyCallback(window, key_callback);
+	glfwSetKeyCallback(window->getGLFWWindow(), key_callback);
 	return true;
 }
 
@@ -163,6 +155,7 @@ void render() {
 void freeMemory() {
 	glDeleteProgram(program);
 	glDeleteBuffers(1, &vbo_triangle);
+	delete window;
 }
 
 int main(void) {
@@ -175,14 +168,14 @@ int main(void) {
 		return EXIT_FAILURE;
 	}
 
-	while (!glfwWindowShouldClose(window)) {
+	while (!glfwWindowShouldClose(window->getGLFWWindow())) {
 		render();
 
 		/* Swap front and back buffers */
-		glfwSwapBuffers(window);
+		glfwSwapBuffers(window->getGLFWWindow());
 		glfwPollEvents();
 	}
-	glfwDestroyWindow(window);
+
 
 	freeMemory();
 	// Close OpenGL window and terminate GLFW
