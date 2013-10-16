@@ -12,6 +12,8 @@ using namespace glm;
 
 GLuint program;
 GLint attribute_coord3d;
+GLuint vbo_triangle;
+GLFWwindow* window;
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 static void error_callback(int error, const char* description) {
@@ -25,31 +27,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action,
 		glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
-void render() {
-	/* Clear the background as white */
-	glClearColor(1.0, 1.0, 1.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	glUseProgram(program);
-	glEnableVertexAttribArray(attribute_coord3d);
-	GLfloat triangle_vertices[] = { -0.5, 0.0, 0.0, -0.8, -0.8, 0.0, 0.5, -0.5,
-			0.0, 0.5, 0.0, 0.0, -0.5, 0.0, 0.0, 0.5, -0.5, 0.0 };
-	/* Describe our vertices array to OpenGL (it can't guess its format automatically) */
-	glVertexAttribPointer(attribute_coord3d, // attribute
-			3,                 // number of elements per vertex, here (x,y)
-			GL_FLOAT,          // the type of each element
-			GL_FALSE,          // take our values as-is
-			0,                 // no extra data between each position
-			triangle_vertices  // pointer to the C array
-			);
-
-	/* Push each element in buffer_vertices to the vertex shader */
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	glDisableVertexAttribArray(attribute_coord3d);
-
-}
-
-int main(void) {
+bool initGL() {
 	glfwSetErrorCallback(error_callback);
 	glfwInit();
 
@@ -58,10 +36,10 @@ int main(void) {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 
 	// Open a window and create its OpenGL context
-	GLFWwindow* window = glfwCreateWindow(640, 480, "My Title", NULL, NULL);
+	window = glfwCreateWindow(640, 480, "My Title", NULL, NULL);
 	if (window == NULL) {
 		glfwTerminate();
-		return -1;
+		return false;
 	}
 
 	glfwMakeContextCurrent(window);
@@ -70,12 +48,12 @@ int main(void) {
 	GLenum err = glewInit();
 	if (err != GLEW_OK) {
 		fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
-		return -1;
+		return false;
 	}
 	if (!GLEW_VERSION_2_0) {
 		fprintf(stderr,
 				"Error: your graphic card does not support OpenGL 2.0\n");
-		return 1;
+		return false;
 	}
 
 	glfwSetWindowTitle(window, "Master Engine!111");
@@ -84,6 +62,10 @@ int main(void) {
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
 	glfwSetKeyCallback(window, key_callback);
+	return true;
+}
+
+bool initData() {
 
 	program = LoadShaders("src/shaders/vertexshader.glsl",
 			"src/shaders/fragmentshader.glsl");
@@ -93,19 +75,66 @@ int main(void) {
 	attribute_coord3d = glGetAttribLocation(program, attribute_name);
 	if (attribute_coord3d == -1) {
 		fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
-		return 0;
+		return false;
+	}
+
+	// Triangle data
+	GLfloat triangle_vertices[] = { 0.0, 0.8, 0.0, -0.8, -0.8, 0.0,  0.8, -0.8, 0.0, };
+	glGenBuffers(1, &vbo_triangle);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_vertices), triangle_vertices,
+			GL_STATIC_DRAW);
+	return true;
+}
+
+void render() {
+	/* Clear the background as white */
+	glClearColor(1.0, 1.0, 1.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glUseProgram(program);
+	glEnableVertexAttribArray(attribute_coord3d);
+	/* Describe our vertices array to OpenGL (it can't guess its format automatically) */
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle);
+	glVertexAttribPointer(attribute_coord3d, // attribute
+			3,                 // number of elements per vertex, here (x,y)
+			GL_FLOAT,          // the type of each element
+			GL_FALSE,          // take our values as-is
+			0,                 // offset to first entry
+			0  // pointer to the C array
+			);
+
+	/* Push each element in buffer_vertices to the vertex shader */
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glDisableVertexAttribArray(attribute_coord3d);
+
+}
+
+void freeMemory() {
+	glDeleteProgram(program);
+	glDeleteBuffers(1, &vbo_triangle);
+}
+
+int main(void) {
+
+	if (!initGL()) {
+		return EXIT_FAILURE;
+	}
+
+	if (!initData()) {
+		return EXIT_FAILURE;
 	}
 
 	while (!glfwWindowShouldClose(window)) {
 		render();
 
 		/* Swap front and back buffers */
-		glfwSwapBuffers(window);
+		glfwSwapBuffers (window);
 		glfwPollEvents();
 	}
 	glfwDestroyWindow(window);
 
-	glDeleteProgram(program);
+	freeMemory();
 	// Close OpenGL window and terminate GLFW
 	glfwTerminate();
 
