@@ -16,13 +16,6 @@ static void error_callback(int error, const char* description) {
 }
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-static void key_callback(GLFWwindow* window, int key, int scancode, int action,
-		int mods) {
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GL_TRUE);
-}
-
-#pragma GCC diagnostic ignored "-Wunused-parameter"
 static void window_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
 }
@@ -43,7 +36,6 @@ bool Window::setup() {
 
 	glfwSetErrorCallback(error_callback);
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
-	glfwSetKeyCallback(window, key_callback);
 	glfwSetWindowSizeCallback(window, window_callback);
 
 	return true;

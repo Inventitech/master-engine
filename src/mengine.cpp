@@ -8,11 +8,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <SOIL/SOIL.h>
+#include <fmodex/fmod.hpp>
+#include <fmodex/fmod_errors.h>
 
 #include "triangle.h"
 #include "window.h"
 #include "shaderprogram.h"
-#include "texture.cpp"
 
 using namespace glm;
 
@@ -24,6 +25,29 @@ GLuint ibo_cube_elements;
 GLint uniform_mvp;
 GLuint texture_id;
 GLint uniform_mytexture;
+FMOD::System *fmodsystem; //handle to FMOD engine
+FMOD::Sound *sound1; //sound that will be loaded and played
+FMOD::Channel    *channel = 0;
+
+
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+static void key_callback(GLFWwindow* window, int key, int scancode, int action,
+		int mods) {
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, GL_TRUE);
+	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+		bool playing;
+		channel->isPlaying(&playing);
+		if(!playing) {
+		fmodsystem->playSound(FMOD_CHANNEL_FREE, sound1, false, &channel);
+		} else {
+        bool paused;
+        channel->getPaused(&paused);
+        channel->setPaused(!paused);
+		}
+	}
+
+}
 
 bool initGL() {
 	glfwInit();
@@ -32,6 +56,7 @@ bool initGL() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 
 	window = new Window(640, 480, "Master Engine!111");
+	glfwSetKeyCallback(window->getGLFWWindow(), key_callback);
 
 	// Initialize GLEW
 	GLenum err = glewInit();
@@ -151,6 +176,8 @@ bool initData() {
 }
 
 void render() {
+	fmodsystem->update();
+
 	float angle = glfwGetTime() / 1 * 45;  // 45° per second
 	glm::vec3 axis_y(0, 1, 0);
 	//glm::mat4 anim = glm::rotate(glm::mat4(1.0f), angle, axis_y);
@@ -220,7 +247,41 @@ void freeMemory() {
 	glDeleteTextures(1, &texture_id);
 	delete shaderProgram;
 	delete window;
+	sound1->release();
+	fmodsystem->close();
+	fmodsystem->release();
 }
+
+void ERRCHECK(FMOD_RESULT result)
+{
+    if (result != FMOD_OK)
+    {
+        printf("FMOD error! (%d) %s\n", result, FMOD_ErrorString(result));
+        exit(-1);
+    }
+}
+
+void startMusic() {
+    FMOD_RESULT       result;
+	result = FMOD::System_Create(&fmodsystem);              // create an instance of the game engine
+	ERRCHECK(result);
+	uint version;
+	result = fmodsystem->getVersion(&version);
+	ERRCHECK(result);
+
+    result = fmodsystem->init(1, FMOD_INIT_NORMAL, 0);
+    ERRCHECK(result);
+
+    result = fmodsystem->createSound("resources/itssofluffy.mp3", FMOD_SOFTWARE | FMOD_2D | FMOD_CREATESTREAM, 0, &sound1);
+    ERRCHECK(result);
+
+	sound1->setMode(FMOD_LOOP_OFF);
+
+}
+
+
+
+
 
 int main(void) {
 
@@ -231,6 +292,8 @@ int main(void) {
 	if (!initData()) {
 		return EXIT_FAILURE;
 	}
+
+	startMusic();
 
 	while (!glfwWindowShouldClose(window->getGLFWWindow())) {
 		render();

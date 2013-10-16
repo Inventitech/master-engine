@@ -1,4 +1,4 @@
 env = Environment()
-env.Append(CCFLAGS = ['-g', '-O', '-Wall', '-ansi', '-pedantic', '-Wextra', '-fmessage-length=0' ])
-env.Append(LIBS = ['GLEW', 'glfw' ,'GL', 'GLU', 'SOIL'])
+env.Append(CCFLAGS = ['-g', '-O', '-Wall', '-ansi', '-pedantic', '-Wextra', '-fmessage-length=0'])
+env.Append(LIBS = ['GLEW', 'glfw' ,'GL', 'GLU', 'fmodex', 'SOIL'])
 env.Program('mengine', Glob('*.cpp'))
