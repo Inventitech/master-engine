@@ -1,7 +1,7 @@
 #include "window.h"
 
 Window::Window(int xSize, int ySize, const char* title) :
-		xSize(xSize), ySize(ySize), title(title) {
+		title(title), xSize(xSize), ySize(ySize) {
 	setup();
 }
 

@@ -16,7 +16,8 @@ class Window {
 	const char* title;
 	bool setup();
 public:
-	int xSize, ySize;
+	int xSize;
+	int ySize;
 	Window(int xSize, int ySize, const char* title);
 	GLFWwindow* getGLFWWindow() { return this->window; };
 	virtual ~Window();

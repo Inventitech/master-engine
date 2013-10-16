@@ -8,7 +8,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "shader.h"
 #include "triangle.h"
 #include "window.h"
 #include "shaderprogram.h"
