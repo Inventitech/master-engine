@@ -1,6 +1,5 @@
-clean:
-	rm -f mengine;
+all:
+	scons
 
-all:	
-	cd src; scons; mv mengine ../mengine
-	
+clean:
+	scons -c
