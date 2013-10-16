@@ -16,9 +16,9 @@ using namespace glm;
 
 GLuint program;
 GLint attribute_coord3d, attribute_v_color;
-GLuint vbo_triangle, vbo_triangle_colors;
-GLint uniform_m_transform;
 Window* window;
+GLuint vbo_cube_vertices, vbo_cube_colors;
+GLuint ibo_cube_elements;
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 static void error_callback(int error, const char* description) {
@@ -40,7 +40,7 @@ bool initGL() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 
-	window = new Window(640,480,"Master Engine!111");
+	window = new Window(640, 480, "Master Engine!111");
 
 	// Initialize GLEW
 	GLenum err = glewInit();
@@ -66,9 +66,47 @@ bool initData() {
 	program = LoadShaders("src/shaders/vertexshader.glsl",
 			"src/shaders/fragmentshader.glsl");
 
-	struct attributes triangle_attributes[] = { { { 0.0, 0.8, 0.0 }, { 1.0, 1.0,
-			0.0 } }, { { -0.8, -0.8, 0.0 }, { 0.0, 0.0, 1.0 } }, { { 0.8, -0.8,
-			0.0 }, { 1.0, 0.0, 0.0 } } };
+	GLfloat cube_vertices[] =
+			{
+					// front
+					-1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0,
+					1.0,
+					// back
+					-1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0, -1.0,
+					1.0, -1.0, };
+	glGenBuffers(1, &vbo_cube_vertices);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_vertices);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices,
+	GL_STATIC_DRAW);
+
+	GLfloat cube_colors[] = {
+	// front colors
+			1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0,
+			// back colors
+			1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, };
+
+	glGenBuffers(1, &vbo_cube_colors);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_colors);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_colors), cube_colors,
+	GL_STATIC_DRAW);
+
+	GLushort cube_elements[] = {
+	// front
+			0, 1, 2, 2, 3, 0,
+			// top
+			1, 5, 6, 6, 2, 1,
+			// back
+			7, 6, 5, 5, 4, 7,
+			// bottom
+			4, 0, 3, 3, 7, 4,
+			// left
+			4, 5, 1, 1, 0, 4,
+			// right
+			3, 2, 6, 6, 7, 3, };
+	glGenBuffers(1, &ibo_cube_elements);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_cube_elements);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_elements), cube_elements,
+	GL_STATIC_DRAW);
 
 	// Setup vertex shader attribute
 	const char* attribute_name = "coord3d";
@@ -76,13 +114,6 @@ bool initData() {
 	if (attribute_coord3d == -1) {
 		fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
 		return false;
-	}
-
-	attribute_name = "m_transform";
-	uniform_m_transform = glGetUniformLocation(program, attribute_name);
-	if (uniform_m_transform == -1) {
-		fprintf(stderr, "Could not bind uniform %s\n", attribute_name);
-		return 0;
 	}
 
 	// Setup vertex shader attribute
@@ -93,68 +124,59 @@ bool initData() {
 		return false;
 	}
 
-	glGenBuffers(1, &vbo_triangle);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_attributes),
-			triangle_attributes,
-			GL_STATIC_DRAW);
-
 	return true;
 }
 
 void render() {
+
+
 	// Enable alpha
 	glEnable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	double elapsedTime = glfwGetTime();
-	float move = sinf(elapsedTime  * (2 * 3.14) / 5); // -1<->+1 every 5 seconds
-	float angle = elapsedTime  * 10;  // 45° per second
-	glm::vec3 axis_z(0, 0, 1);
-	glm::mat4 m_transform = glm::rotate(glm::mat4(1.0f), angle, axis_z) *  glm::translate(glm::mat4(1.0f),
-			glm::vec3(move, 0.0, 0.0))
-			;
-	glUniformMatrix4fv(uniform_m_transform, 1, GL_FALSE,
-			glm::value_ptr(m_transform));
 
 	/* Clear the background as white */
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT);
 	glUseProgram(program);
 
 	glEnableVertexAttribArray(attribute_v_color);
 	glEnableVertexAttribArray(attribute_coord3d);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle);
 
-	/* Describe our colors array to OpenGL (it can't guess its format automatically) */
-	glVertexAttribPointer(attribute_v_color,   // attribute
-			3,                   // number of elements per vertex, here (x,y,z)
-			GL_FLOAT,            // the type of each element
-			GL_FALSE,            // take our values as-is
-			sizeof(struct attributes),  // next coord3d appears every 6 floats
-			(GLvoid*) offsetof(struct attributes, v_color) // offset of first element
-					);
+	// Describe our vertices array to OpenGL (it can't guess its format automatically)
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_vertices);
+	glVertexAttribPointer(attribute_coord3d, // attribute
+			3,                 // number of elements per vertex, here (x,y,z)
+			GL_FLOAT,          // the type of each element
+			GL_FALSE,          // take our values as-is
+			0,                 // no extra data between each position
+			0                  // offset of first element
+			);
 
-	/* Describe our vertices array to OpenGL (it can't guess its format automatically) */
-	glVertexAttribPointer(attribute_coord3d,   // attribute
-			3,                   // number of elements per vertex, here (x,y,z)
-			GL_FLOAT,            // the type of each element
-			GL_FALSE,            // take our values as-is
-			sizeof(struct attributes),  // next coord3d appears every 6 floats
-			0                    // offset of first element
+	glEnableVertexAttribArray(attribute_v_color);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_colors);
+	glVertexAttribPointer(attribute_v_color, // attribute
+			3,                 // number of elements per vertex, here (R,G,B)
+			GL_FLOAT,          // the type of each element
+			GL_FALSE,          // take our values as-is
+			0,                 // no extra data between each position
+			0                  // offset of first element
 			);
 
 	/* Push each element in buffer_vertices to the vertex shader */
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_cube_elements);
+	int size;
+	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+	glDrawElements(GL_TRIANGLES, size / sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
 
-	glDisableVertexAttribArray(attribute_v_color);
 	glDisableVertexAttribArray(attribute_coord3d);
+	glDisableVertexAttribArray(attribute_v_color);
 
 }
 
 void freeMemory() {
 	glDeleteProgram(program);
-	glDeleteBuffers(1, &vbo_triangle);
 	delete window;
 }
 
@@ -175,7 +197,6 @@ int main(void) {
 		glfwSwapBuffers(window->getGLFWWindow());
 		glfwPollEvents();
 	}
-
 
 	freeMemory();
 	// Close OpenGL window and terminate GLFW
