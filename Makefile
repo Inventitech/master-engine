@@ -1,4 +1,4 @@
-all: doc
+all: 
 	scons
 	
 doc:
