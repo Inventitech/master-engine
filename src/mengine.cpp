@@ -34,6 +34,11 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action,
 		glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+static void window_callback(GLFWwindow* window, int width, int height) {
+	glViewport(0, 0, width, height);
+}
+
 bool initGL() {
 
 	glfwSetErrorCallback(error_callback);
@@ -60,6 +65,9 @@ bool initGL() {
 	glfwSetInputMode(window->getGLFWWindow(), GLFW_STICKY_KEYS, GL_TRUE);
 
 	glfwSetKeyCallback(window->getGLFWWindow(), key_callback);
+
+	glfwSetWindowSizeCallback(window->getGLFWWindow(), window_callback);
+
 	return true;
 }
 
@@ -112,7 +120,8 @@ bool initData() {
 
 	// Setup vertex shader attribute
 	const char* attribute_name = "coord3d";
-	attribute_coord3d = glGetAttribLocation(shaderProgram->getProgram(), attribute_name);
+	attribute_coord3d = glGetAttribLocation(shaderProgram->getProgram(),
+			attribute_name);
 	if (attribute_coord3d == -1) {
 		fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
 		return false;
@@ -127,7 +136,6 @@ bool initData() {
 		fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
 		return false;
 	}
-
 
 	const char* uniform_name;
 	uniform_name = "mvp";
