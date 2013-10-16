@@ -157,7 +157,7 @@ bool initData() {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_texcoords), cube_texcoords,
 	GL_STATIC_DRAW);
 
-	texture_id = SOIL_load_OGL_texture("res/texture.jpg", SOIL_LOAD_AUTO,
+	texture_id = SOIL_load_OGL_texture("resources/texture.jpg", SOIL_LOAD_AUTO,
 			SOIL_CREATE_NEW_ID,
 			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB
 					| SOIL_FLAG_COMPRESS_TO_DXT);
