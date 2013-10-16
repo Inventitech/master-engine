@@ -1,10 +1,3 @@
-/*
- * window.cpp
- *
- *  Created on: Oct 16, 2013
- *      Author: nihathrael
- */
-
 #include "window.h"
 
 Window::Window(int xSize, int ySize, const char* title) :
@@ -16,7 +9,7 @@ Window::~Window() {
 	glfwDestroyWindow(window);
 }
 
-/*
+/**
  * Sets up an OpenGL-enabled window with GLFW. If the window could not be created, returns false.
  */
 bool Window::setup() {
@@ -29,7 +22,6 @@ bool Window::setup() {
 	}
 
 	glfwMakeContextCurrent(window);
-//	glfwSetWindowTitle(window, "Master Engine!111");
 
 	return true;
 }
