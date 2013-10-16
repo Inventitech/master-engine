@@ -19,6 +19,7 @@ GLint attribute_coord3d, attribute_v_color;
 Window* window;
 GLuint vbo_cube_vertices, vbo_cube_colors;
 GLuint ibo_cube_elements;
+GLint uniform_mvp;
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 static void error_callback(int error, const char* description) {
@@ -62,6 +63,7 @@ bool initGL() {
 }
 
 bool initData() {
+
 
 	program = LoadShaders("src/shaders/vertexshader.glsl",
 			"src/shaders/fragmentshader.glsl");
@@ -124,11 +126,33 @@ bool initData() {
 		return false;
 	}
 
+
+	const char* uniform_name;
+	uniform_name = "mvp";
+	uniform_mvp = glGetUniformLocation(program, uniform_name);
+	if (uniform_mvp == -1) {
+		fprintf(stderr, "Could not bind uniform %s\n", uniform_name);
+		return 0;
+	}
+
 	return true;
 }
 
 void render() {
+	float angle = glfwGetTime() / 10.0 * 45;  // 45° per second
+	glm::vec3 axis_y(0, 1, 0);
+	glm::mat4 anim = glm::rotate(glm::mat4(1.0f), angle, axis_y);
 
+	glm::mat4 model = glm::translate(glm::mat4(1.0f),
+			glm::vec3(0.0, 0.0, -4.0));
+	glm::mat4 view = glm::lookAt(glm::vec3(0.0, 2.0, 0.0),
+			glm::vec3(0.0, 0.0, -4.0), glm::vec3(0.0, 1.0, 0.0));
+	glm::mat4 projection = glm::perspective(45.0f,
+			1.0f * window->xSize / window->ySize, 0.1f, 10.0f);
+	glm::mat4 mvp = projection * view * model * anim;
+
+	glUseProgram(program);
+	glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
 
 	// Enable alpha
 	glEnable(GL_BLEND);

@@ -13,10 +13,10 @@
 
 class Window {
 	GLFWwindow* window;
-	int xSize, ySize;
 	const char* title;
 	bool setup();
 public:
+	int xSize, ySize;
 	Window(int xSize, int ySize, const char* title);
 	GLFWwindow* getGLFWWindow() { return this->window; };
 	virtual ~Window();
