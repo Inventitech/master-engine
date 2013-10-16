@@ -117,11 +117,11 @@ void render() {
 
 	double elapsedTime = glfwGetTime();
 	float move = sinf(elapsedTime  * (2 * 3.14) / 5); // -1<->+1 every 5 seconds
-	float angle = elapsedTime  * 45;  // 45° per second
+	float angle = elapsedTime  * 10;  // 45° per second
 	glm::vec3 axis_z(0, 0, 1);
-	glm::mat4 m_transform = glm::translate(glm::mat4(1.0f),
+	glm::mat4 m_transform = glm::rotate(glm::mat4(1.0f), angle, axis_z) *  glm::translate(glm::mat4(1.0f),
 			glm::vec3(move, 0.0, 0.0))
-			* glm::rotate(glm::mat4(1.0f), angle, axis_z);
+			;
 	glUniformMatrix4fv(uniform_m_transform, 1, GL_FALSE,
 			glm::value_ptr(m_transform));
 
