@@ -71,7 +71,7 @@ int main(void) {
 	glGenVertexArrays(1, &VertexArrayID);
 	glBindVertexArray(VertexArrayID);
 
-	GLuint programID = LoadShaders( "SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader" );
+	GLuint programID = LoadShaders( "shaders/SimpleVertexShader.vertexshader", "shaders/SimpleFragmentShader.fragmentshader" );
 
 	static const GLfloat g_vertex_buffer_data[] = { -1.0f, -1.0f, 0.0f, 1.0f,
 			-1.0f, 0.0f, 0.0f, 1.0f, 0.0f, };
