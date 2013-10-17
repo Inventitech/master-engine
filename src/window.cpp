@@ -26,6 +26,10 @@ static void window_callback(GLFWwindow* window, int width, int height) {
  * not be created.
  */
 bool Window::setup() {
+	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+
 	window = glfwCreateWindow(this->xSize, this->ySize, this->title, NULL,
 	NULL);
 	if (window == NULL) {

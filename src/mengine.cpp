@@ -49,9 +49,6 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action,
 
 bool initGL() {
 	glfwInit();
-	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 
 	window = new Window(640, 480, "Master Engine!111");
 	glfwSetKeyCallback(window->getGLFWWindow(), key_callback);
