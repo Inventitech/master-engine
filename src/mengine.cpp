@@ -15,18 +15,20 @@
 #include "soundmanager.h"
 #include "FrameCounter.h"
 #include "utilities.h"
+#include "mesh.h"
+#include "objloader.h"
 
 using namespace glm;
 
-GLint attribute_coord3d, attribute_v_color, attribute_texcoord;
+GLint attribute_coord3d, attribute_normal, attribute_texcoord;
 Window* window;
 ShaderProgram* shaderProgram;
 SoundManager* soundManager;
-GLuint vbo_cube_vertices, vbo_cube_colors, vbo_cube_texcoords;
-GLuint ibo_cube_elements;
-GLint uniform_m;
-GLuint texture_id, texture_id2;
-GLint uniform_mytexture;
+Mesh* monkey;
+ObjLoader* objLoader;
+GLuint vbo_vertices, vbo_normals;
+GLuint ibo_elements;
+GLint uniform_m, uniform_v, uniform_p;
 FMOD::Sound* sound;
 
 bool showFps = false;
@@ -98,79 +100,41 @@ bool initData() {
 	soundManager = new SoundManager();
 	sound = soundManager->createSound("resources/itssofluffy.mp3");
 
-	GLfloat cube_vertices[] = {
-	// front
-			-1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0,
-			// top
-			-1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0, -1.0, 1.0, -1.0,
-			// back
-			1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0,
-			// bottom
-			-1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, -1.0, 1.0,
-			// left
-			-1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0,
-			// right
-			1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, };
-	glGenBuffers(1, &vbo_cube_vertices);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_vertices);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices,
-	GL_STATIC_DRAW);
+	objLoader = new ObjLoader();
 
-	GLfloat cube_colors[] = {
-	// front colors
-			1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0,
-			// back colors
-			1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, };
+	monkey = new Mesh();
+	objLoader->load_obj("resources/monkey.obj", monkey);
+	fprintf(stdout, "Mesh vertices: %d\n", monkey->vertices.size());
+	fprintf(stdout, "Mesh elements: %d\n", monkey->elements.size());
 
-	glGenBuffers(1, &vbo_cube_colors);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_colors);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_colors), cube_colors,
-	GL_STATIC_DRAW);
-	GLushort cube_elements[] = {
-	// front
-			0, 1, 2, 2, 3, 0,
-			// top
-			4, 5, 6, 6, 7, 4,
-			// back
-			8, 9, 10, 10, 11, 8,
-			// bottom
-			12, 13, 14, 14, 15, 12,
-			// left
-			16, 17, 18, 18, 19, 16,
-			// right
-			20, 21, 22, 22, 23, 20, };
-	glGenBuffers(1, &ibo_cube_elements);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_cube_elements);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_elements), cube_elements,
-	GL_STATIC_DRAW);
+	glGenBuffers(1, &vbo_vertices);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
+	glBufferData(GL_ARRAY_BUFFER,
+			monkey->vertices.size() * sizeof(monkey->vertices[0]),
+			monkey->vertices.data(),
+			GL_STATIC_DRAW);
 
-	GLfloat cube_texcoords[2 * 4 * 6] = {
-	// front
-			0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, };
-	for (int i = 1; i < 6; i++)
-		memcpy(&cube_texcoords[i * 4 * 2], &cube_texcoords[0],
-				2 * 4 * sizeof(GLfloat));
-	glGenBuffers(1, &vbo_cube_texcoords);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_texcoords);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_texcoords), cube_texcoords,
-	GL_STATIC_DRAW);
+	glGenBuffers(1, &vbo_normals);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
+	glBufferData(GL_ARRAY_BUFFER,
+			monkey->normals.size() * sizeof(monkey->normals[0]),
+			monkey->normals.data(),
+			GL_STATIC_DRAW);
 
-	texture_id = SOIL_load_OGL_texture("resources/texture.jpg", SOIL_LOAD_AUTO,
-			SOIL_CREATE_NEW_ID,
-			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB
-					| SOIL_FLAG_COMPRESS_TO_DXT);
-
-	texture_id2 = SOIL_load_OGL_texture("resources/texture2.jpg",
-			SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID,
-			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB
-					| SOIL_FLAG_COMPRESS_TO_DXT);
+	glGenBuffers(1, &ibo_elements);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_elements);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+			monkey->elements.size() * sizeof(monkey->elements[0]),
+			monkey->elements.data(),
+			GL_STATIC_DRAW);
 
 	GLuint program = shaderProgram->getProgram();
 	bool bindSuccessfull = true;
 	bindSuccessfull &= bindAttribute(program, "coord3d", attribute_coord3d);
-	bindSuccessfull &= bindAttribute(program, "texcoord", attribute_texcoord);
-	bindSuccessfull &= bindUniform(program, "mvp", uniform_m);
-	bindSuccessfull &= bindUniform(program, "mytexture", uniform_mytexture);
+	bindSuccessfull &= bindAttribute(program, "normal", attribute_normal);
+	bindSuccessfull &= bindUniform(program, "m", uniform_m);
+	bindSuccessfull &= bindUniform(program, "v", uniform_v);
+	bindSuccessfull &= bindUniform(program, "p", uniform_p);
 
 	if (!bindSuccessfull) {
 		return EXIT_FAILURE;
@@ -186,32 +150,23 @@ void render() {
 	soundManager->update();
 	double currentTime = glfwGetTime();
 
-	float angle = currentTime / 1 * 45;  // 45° per second
-	glm::vec3 axis_y(0, 1, 0);
-	//glm::mat4 anim = glm::rotate(glm::mat4(1.0f), angle, axis_y);
-	glm::mat4 anim = glm::rotate(glm::mat4(1.0f), angle * 3.0f,
-			glm::vec3(1, 0, 0)) *  // X axis
-			glm::rotate(glm::mat4(1.0f), angle * 2.0f, glm::vec3(0, 1, 0)) * // Y axis
-			glm::rotate(glm::mat4(1.0f), angle * 4.0f, glm::vec3(0, 0, 1)); // Z axis
-
 	glm::mat4 model = glm::translate(glm::mat4(1.0f),
 			glm::vec3(0.0, 0.0, -4.0));
-	glm::mat4 view = glm::lookAt(glm::vec3(0.0, 2.0, 0.0),
-			glm::vec3(0.0, 0.0, -4.0), glm::vec3(0.0, 1.0, 0.0));
+	  float angle = currentTime * 15;  // base 15° per second
+	  glm::mat4 anim = \
+	    glm::rotate(glm::mat4(1.0f), angle*3.0f, glm::vec3(1, 0, 0)) *  // X axis
+	    glm::rotate(glm::mat4(1.0f), angle*2.0f, glm::vec3(0, 1, 0)) *  // Y axis
+	    glm::rotate(glm::mat4(1.0f), angle*4.0f, glm::vec3(0, 0, 1));   // Z axis
+	model = model * anim;
+	glm::mat4 view = glm::lookAt(glm::vec3(0.0, 2.0, 4.0),   // eye
+	glm::vec3(0.0, 0.0, 0.0),   // direction
+	glm::vec3(0.0, 1.0, 0.0));  // up
 	glm::mat4 projection = glm::perspective(45.0f,
-			1.0f * window->xSize / window->ySize, 0.1f, 10.0f);
-	glm::mat4 mvp = projection * view * model * anim;
+			1.0f * window->xSize / window->ySize, 0.1f, 100.0f);
 
-	glUniformMatrix4fv(uniform_m, 1, GL_FALSE, glm::value_ptr(mvp));
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture_id);
-	glUniform1i(uniform_mytexture, /*GL_TEXTURE*/0);
-
-	// Enable alpha
-	glEnable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glUniformMatrix4fv(uniform_m, 1, GL_FALSE, glm::value_ptr(model));
+	glUniformMatrix4fv(uniform_v, 1, GL_FALSE, glm::value_ptr(view));
+	glUniformMatrix4fv(uniform_p, 1, GL_FALSE, glm::value_ptr(projection));
 
 	/* Clear the background as white */
 	glClearColor(1.0, 1.0, 1.0, 1.0);
@@ -219,39 +174,36 @@ void render() {
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glUseProgram(shaderProgram->getProgram());
 
-	glEnableVertexAttribArray(attribute_v_color);
 	glEnableVertexAttribArray(attribute_coord3d);
-	glEnableVertexAttribArray(attribute_texcoord);
 
 	// Describe our vertices array to OpenGL (it can't guess its format automatically)
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_vertices);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 	glVertexAttribPointer(attribute_coord3d, // attribute
-			3,                 // number of elements per vertex, here (x,y,z)
+			4,                 // number of elements per vertex, here (x,y,z,w)
 			GL_FLOAT,          // the type of each element
 			GL_FALSE,          // take our values as-is
 			0,                 // no extra data between each position
 			0                  // offset of first element
 			);
 
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_texcoords);
-	glVertexAttribPointer(attribute_texcoord, // attribute
-			2,                  // number of elements per vertex, here (x,y)
-			GL_FLOAT,           // the type of each element
-			GL_FALSE,           // take our values as-is
-			0,                  // no extra data between each position
-			0                   // offset of first element
+	// Describe our vertices array to OpenGL (it can't guess its format automatically)
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
+	glVertexAttribPointer(attribute_normal, // attribute
+			3,                 // number of elements per vertex, here (x,y,z,w)
+			GL_FLOAT,          // the type of each element
+			GL_FALSE,          // take our values as-is
+			0,                 // no extra data between each position
+			0                  // offset of first element
 			);
 
 	/* Push each element in buffer_vertices to the vertex shader */
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_cube_elements);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_elements);
 	int size;
 	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
 	int indexex = size / sizeof(GLushort);
 	glDrawElements(GL_TRIANGLES, indexex, GL_UNSIGNED_SHORT, (GLvoid*) (0));
 
 	glDisableVertexAttribArray(attribute_coord3d);
-	glDisableVertexAttribArray(attribute_v_color);
-	glDisableVertexAttribArray(attribute_texcoord);
 
 	if (showFps) {
 		frameCounter.countNewFrame(currentTime);
@@ -259,16 +211,16 @@ void render() {
 }
 
 void freeMemory() {
-	glDeleteTextures(1, &texture_id);
-	glDeleteTextures(1, &texture_id2);
 	soundManager->deleteSound(sound);
 	delete soundManager;
 	delete shaderProgram;
 	delete window;
+	delete monkey;
+	delete objLoader;
 }
 
 int main(int argc, char** argv) {
-	if(parseCommandLineArgs(argc,argv, showFps)) {
+	if (parseCommandLineArgs(argc, argv, showFps)) {
 		return EXIT_SUCCESS;
 	}
 

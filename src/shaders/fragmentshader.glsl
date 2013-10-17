@@ -1,7 +1,6 @@
 #version 120
-varying vec2 f_texcoord;
-uniform sampler2D mytexture;
+uniform mat4 m, v, p;
 void main(void) {
-  vec2 flipped_texcoord = vec2(f_texcoord.x, 1.0 - f_texcoord.y);
-  gl_FragColor = texture2D(mytexture, flipped_texcoord);
+	mat4 trdui = m * v * p;
+  	gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
 }
