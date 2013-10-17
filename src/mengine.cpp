@@ -23,12 +23,17 @@ ShaderProgram* shaderProgram;
 GLuint vbo_cube_vertices, vbo_cube_colors, vbo_cube_texcoords;
 GLuint ibo_cube_elements;
 GLint uniform_m;
-GLuint texture_id;
+GLuint texture_id, texture_id2;
 GLint uniform_mytexture;
 FMOD::System *fmodsystem; //handle to FMOD engine
 FMOD::Sound *sound1; //sound that will be loaded and played
-FMOD::Channel    *channel = 0;
-
+FMOD::Channel *channel = 0;
+bool showFps = true;
+double currentTime;
+struct Fps {
+	long time;
+	long frames;
+} fps;
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 static void key_callback(GLFWwindow* window, int key, int scancode, int action,
@@ -38,12 +43,12 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action,
 	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
 		bool playing;
 		channel->isPlaying(&playing);
-		if(!playing) {
-		fmodsystem->playSound(FMOD_CHANNEL_FREE, sound1, false, &channel);
+		if (!playing) {
+			fmodsystem->playSound(FMOD_CHANNEL_FREE, sound1, false, &channel);
 		} else {
-        bool paused;
-        channel->getPaused(&paused);
-        channel->setPaused(!paused);
+			bool paused;
+			channel->getPaused(&paused);
+			channel->setPaused(!paused);
 		}
 	}
 
@@ -162,6 +167,11 @@ bool initData() {
 			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB
 					| SOIL_FLAG_COMPRESS_TO_DXT);
 
+	texture_id2 = SOIL_load_OGL_texture("resources/texture2.jpg",
+			SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID,
+			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB
+					| SOIL_FLAG_COMPRESS_TO_DXT);
+
 	GLuint program = shaderProgram->getProgram();
 	bool bindSuccessfull = true;
 	bindSuccessfull &= bindAttribute(program, "coord3d", attribute_coord3d);
@@ -173,13 +183,15 @@ bool initData() {
 		return EXIT_FAILURE;
 	}
 
+	fps.time = glfwGetTime();
 	return true;
 }
 
 void render() {
 	fmodsystem->update();
+	currentTime = glfwGetTime();
 
-	float angle = glfwGetTime() / 1 * 45;  // 45° per second
+	float angle = currentTime / 1 * 45;  // 45° per second
 	glm::vec3 axis_y(0, 1, 0);
 	//glm::mat4 anim = glm::rotate(glm::mat4(1.0f), angle, axis_y);
 	glm::mat4 anim = glm::rotate(glm::mat4(1.0f), angle * 3.0f,
@@ -196,6 +208,10 @@ void render() {
 	glm::mat4 mvp = projection * view * model * anim;
 
 	glUniformMatrix4fv(uniform_m, 1, GL_FALSE, glm::value_ptr(mvp));
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture_id);
+	glUniform1i(uniform_mytexture, /*GL_TEXTURE*/0);
 
 	// Enable alpha
 	glEnable(GL_BLEND);
@@ -235,17 +251,27 @@ void render() {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_cube_elements);
 	int size;
 	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
-	glDrawElements(GL_TRIANGLES, size / sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+	int indexex = size / sizeof(GLushort);
+	glDrawElements(GL_TRIANGLES, indexex, GL_UNSIGNED_SHORT, (GLvoid*) (0));
 
 	glDisableVertexAttribArray(attribute_coord3d);
 	glDisableVertexAttribArray(attribute_v_color);
 	glDisableVertexAttribArray(attribute_texcoord);
 
+	if (showFps) {
+		fps.frames++;
+		double delta = currentTime - fps.time;
+		if (delta >= 5) {
+			printf("FPS: %f\n", fps.frames / delta);
+			fps.frames = 0;
+			fps.time = currentTime;
+		}
+	}
 }
 
 void freeMemory() {
 	glDeleteTextures(1, &texture_id);
+	glDeleteTextures(1, &texture_id2);
 	delete shaderProgram;
 	delete window;
 	sound1->release();
@@ -253,36 +279,31 @@ void freeMemory() {
 	fmodsystem->release();
 }
 
-void ERRCHECK(FMOD_RESULT result)
-{
-    if (result != FMOD_OK)
-    {
-        printf("FMOD error! (%d) %s\n", result, FMOD_ErrorString(result));
-        exit(-1);
-    }
+void ERRCHECK(FMOD_RESULT result) {
+	if (result != FMOD_OK) {
+		printf("FMOD error! (%d) %s\n", result, FMOD_ErrorString(result));
+		exit(-1);
+	}
 }
 
 void startMusic() {
-    FMOD_RESULT       result;
-	result = FMOD::System_Create(&fmodsystem);              // create an instance of the game engine
+	FMOD_RESULT result;
+	result = FMOD::System_Create(&fmodsystem); // create an instance of the game engine
 	ERRCHECK(result);
 	uint version;
 	result = fmodsystem->getVersion(&version);
 	ERRCHECK(result);
 
-    result = fmodsystem->init(1, FMOD_INIT_NORMAL, 0);
-    ERRCHECK(result);
+	result = fmodsystem->init(1, FMOD_INIT_NORMAL, 0);
+	ERRCHECK(result);
 
-    result = fmodsystem->createSound("resources/itssofluffy.mp3", FMOD_SOFTWARE | FMOD_2D | FMOD_CREATESTREAM, 0, &sound1);
-    ERRCHECK(result);
+	result = fmodsystem->createSound("resources/itssofluffy.mp3",
+	FMOD_SOFTWARE | FMOD_2D | FMOD_CREATESTREAM, 0, &sound1);
+	ERRCHECK(result);
 
 	sound1->setMode(FMOD_LOOP_OFF);
 
 }
-
-
-
-
 
 int main(void) {
 
