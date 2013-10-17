@@ -9,15 +9,14 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <SOIL/SOIL.h>
 
-#include <boost/program_options.hpp>
-
 #include "triangle.h"
 #include "window.h"
 #include "shaderprogram.h"
 #include "soundmanager.h"
+#include "FrameCounter.h"
+#include "utilities.h"
 
 using namespace glm;
-namespace po = boost::program_options;
 
 GLint attribute_coord3d, attribute_v_color, attribute_texcoord;
 Window* window;
@@ -31,11 +30,7 @@ GLint uniform_mytexture;
 FMOD::Sound* sound;
 
 bool showFps = false;
-double currentTime;
-struct Fps {
-	long time;
-	long frames;
-} fps;
+FrameCounter frameCounter;
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 static void key_callback(GLFWwindow* window, int key, int scancode, int action,
@@ -184,13 +179,15 @@ bool initData() {
 		return EXIT_FAILURE;
 	}
 
-	fps.time = glfwGetTime();
+	if (showFps) {
+		frameCounter = FrameCounter(glfwGetTime());
+	}
 	return true;
 }
 
 void render() {
 	soundManager->update();
-	currentTime = glfwGetTime();
+	double currentTime = glfwGetTime();
 
 	float angle = currentTime / 1 * 45;  // 45° per second
 	glm::vec3 axis_y(0, 1, 0);
@@ -260,13 +257,7 @@ void render() {
 	glDisableVertexAttribArray(attribute_texcoord);
 
 	if (showFps) {
-		fps.frames++;
-		double delta = currentTime - fps.time;
-		if (delta >= 5) {
-			printf("FPS: %f\n", fps.frames / delta);
-			fps.frames = 0;
-			fps.time = currentTime;
-		}
+		frameCounter.countNewFrame(currentTime);
 	}
 }
 
@@ -279,25 +270,9 @@ void freeMemory() {
 	delete window;
 }
 
-
 int main(int argc, char** argv) {
-	// Declare the supported options.
-	po::options_description desc("Allowed options");
-	desc.add_options()("help", "produce this help message")("showFPS",
-			"show frames per second in console output");
-
-	po::variables_map vm;
-	po::store(po::parse_command_line(argc, argv, desc), vm);
-	po::notify(vm);
-
-	if (vm.count("help")) {
-		std::cout << desc << "\n";
-		return 1;
-	}
-
-	if (vm.count("showFPS")) {
-		std::cout << "Displaying frames per second.\n";
-		showFps = true;
+	if(parseCommandLineArgs(argc,argv, showFps)) {
+		return EXIT_SUCCESS;
 	}
 
 	if (!initGL()) {
