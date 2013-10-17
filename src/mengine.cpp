@@ -10,12 +10,14 @@
 #include <SOIL/SOIL.h>
 #include <fmodex/fmod.hpp>
 #include <fmodex/fmod_errors.h>
+#include <boost/program_options.hpp>
 
 #include "triangle.h"
 #include "window.h"
 #include "shaderprogram.h"
 
 using namespace glm;
+namespace po = boost::program_options;
 
 GLint attribute_coord3d, attribute_v_color, attribute_texcoord;
 Window* window;
@@ -28,7 +30,7 @@ GLint uniform_mytexture;
 FMOD::System *fmodsystem; //handle to FMOD engine
 FMOD::Sound *sound1; //sound that will be loaded and played
 FMOD::Channel *channel = 0;
-bool showFps = true;
+bool showFps = false;
 double currentTime;
 struct Fps {
 	long time;
@@ -305,7 +307,25 @@ void startMusic() {
 
 }
 
-int main(void) {
+int main(int argc, char** argv) {
+	// Declare the supported options.
+	po::options_description desc("Allowed options");
+	desc.add_options()("help", "produce this help message")("showFPS",
+			"show frames per second in console output");
+
+	po::variables_map vm;
+	po::store(po::parse_command_line(argc, argv, desc), vm);
+	po::notify(vm);
+
+	if (vm.count("help")) {
+		std::cout << desc << "\n";
+		return 1;
+	}
+
+	if (vm.count("showFPS")) {
+		std::cout << "Displaying frames per second.\n";
+		showFps = true;
+	}
 
 	if (!initGL()) {
 		return EXIT_FAILURE;
