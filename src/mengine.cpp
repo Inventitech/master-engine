@@ -103,7 +103,7 @@ bool initData() {
 	objLoader = new ObjLoader();
 
 	monkey = new Mesh();
-	objLoader->load_obj("resources/monkey.obj", monkey);
+	objLoader->load_obj("resources/teddy.obj", monkey);
 	fprintf(stdout, "Mesh vertices: %d\n", monkey->vertices.size());
 	fprintf(stdout, "Mesh elements: %d\n", monkey->elements.size());
 
@@ -151,8 +151,8 @@ void render() {
 	double currentTime = glfwGetTime();
 
 	glm::mat4 model = glm::translate(glm::mat4(1.0f),
-			glm::vec3(0.0, 0.0, -4.0));
-	  float angle = currentTime * 15;  // base 15° per second
+			glm::vec3(0.0, -10.0, -30.0));
+	  float angle = currentTime * 2;  // base 15° per second
 	  glm::mat4 anim = \
 	    glm::rotate(glm::mat4(1.0f), angle*3.0f, glm::vec3(1, 0, 0)) *  // X axis
 	    glm::rotate(glm::mat4(1.0f), angle*2.0f, glm::vec3(0, 1, 0)) *  // Y axis
@@ -162,11 +162,15 @@ void render() {
 	glm::vec3(0.0, 0.0, 0.0),   // direction
 	glm::vec3(0.0, 1.0, 0.0));  // up
 	glm::mat4 projection = glm::perspective(45.0f,
-			1.0f * window->xSize / window->ySize, 0.1f, 100.0f);
+			1.0f * window->xSize / window->ySize, 0.1f, 1000.0f);
 
 	glUniformMatrix4fv(uniform_m, 1, GL_FALSE, glm::value_ptr(model));
 	glUniformMatrix4fv(uniform_v, 1, GL_FALSE, glm::value_ptr(view));
 	glUniformMatrix4fv(uniform_p, 1, GL_FALSE, glm::value_ptr(projection));
+
+	// Enable alpha
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	/* Clear the background as white */
 	glClearColor(1.0, 1.0, 1.0, 1.0);
