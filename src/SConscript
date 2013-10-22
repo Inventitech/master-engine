@@ -1,4 +1,12 @@
+import os
+
 env = Environment()
 env.Append(CCFLAGS = ['-g', '-Wall', '-ansi', '-pedantic', '-Wextra', '-fmessage-length=0'])
 env.Append(LIBS = ['GLEW', 'glfw' ,'GL', 'GLU', 'fmodex', 'SOIL', 'boost_program_options'])
-env.Program('mengine', Glob('*.cpp'))
+
+# Collect all cpp files
+sources = []
+for root, dirs, files in os.walk('.'):
+	sources.extend(Glob(os.path.join(root,"*.cpp")))
+	
+env.Program('mengine', sources)
