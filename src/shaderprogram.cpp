@@ -15,6 +15,7 @@
 #include <string.h>
 
 #include "shaderprogram.h"
+#include "utils/glutils.h"
 
 ShaderProgram::ShaderProgram() :
 		vertexShaderFile(NULL), fragmentShaderFile(NULL), program(-1) {
@@ -125,4 +126,14 @@ GLuint ShaderProgram::compile() {
 
 	this->program = ProgramID;
 	return ProgramID;
+}
+
+bool ShaderProgram::bind() {
+	bool bindSuccessfull = true;
+	bindSuccessfull &= GLUtils::bindAttribute(program, "coord3d", attribute_coord3d);
+	bindSuccessfull &= GLUtils::bindAttribute(program, "normal", attribute_normal);
+	bindSuccessfull &= GLUtils::bindUniform(program, "m", uniform_m);
+	bindSuccessfull &= GLUtils::bindUniform(program, "v", uniform_v);
+	bindSuccessfull &= GLUtils::bindUniform(program, "p", uniform_p);
+	return bindSuccessfull;
 }

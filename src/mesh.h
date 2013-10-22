@@ -12,9 +12,12 @@
 #include <glm/glm.hpp>
 #include <vector>
 
+#include "shaderprogram.h"
+
 class Mesh {
 private:
   GLuint vbo_vertices, vbo_normals, ibo_elements;
+
 public:
   std::vector<glm::vec4> vertices;
   std::vector<glm::vec3> normals;
@@ -23,6 +26,8 @@ public:
 
   Mesh();
   ~Mesh();
+  void upload();
+  void render(ShaderProgram* shaderProgram);
 };
 
 #endif /* MESH_H_ */

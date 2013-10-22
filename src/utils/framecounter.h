@@ -12,7 +12,7 @@ public:
 	FrameCounter();
 	FrameCounter(double);
 	virtual ~FrameCounter();
-	void countNewFrame(double);
+	void countNewFrame();
 };
 
 #endif /* ARGUMENTPARSER_H_ */

@@ -8,6 +8,7 @@
 #include <stdlib.h>
 
 #include "framecounter.h"
+#include <GLFW/glfw3.h>
 
 FrameCounter::FrameCounter() :
 		fps( { 0.0, 0 }), currentTime(0) {
@@ -24,7 +25,8 @@ FrameCounter::~FrameCounter() {
  * Counts a new frame, and every 5 seconds prints out the
  * average frame rate of the past 5 seconds to the console.
  */
-void FrameCounter::countNewFrame(double currentTime) {
+void FrameCounter::countNewFrame() {
+	double currentTime = glfwGetTime();
 	fps.frames++;
 	double delta = currentTime - fps.startTime;
 	if (delta >= 5) {
