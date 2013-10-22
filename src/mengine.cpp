@@ -9,10 +9,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <SOIL/SOIL.h>
 
-#include "triangle.h"
 #include "window.h"
 #include "shaderprogram.h"
-#include "soundmanager.h"
+#include "sound/soundmanager.h"
 #include "utils/framecounter.h"
 #include "utils/utilities.h"
 #include "mesh.h"
