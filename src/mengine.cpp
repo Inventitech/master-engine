@@ -13,7 +13,7 @@
 #include "window.h"
 #include "shaderprogram.h"
 #include "soundmanager.h"
-#include "FrameCounter.h"
+#include "utils/framecounter.h"
 #include "utils/utilities.h"
 #include "mesh.h"
 #include "objloader.h"

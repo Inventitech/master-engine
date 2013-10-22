@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "FrameCounter.h"
+#include "framecounter.h"
 
 FrameCounter::FrameCounter() :
 		fps( { 0.0, 0 }), currentTime(0) {
