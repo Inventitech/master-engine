@@ -26,6 +26,7 @@ ShaderProgram* shaderProgram;
 SoundManager* soundManager;
 Mesh* monkey;
 RenderableComponent* renderComponent;
+RenderableComponent* renderComponent2;
 ObjLoader* objLoader;
 
 FMOD::Sound* sound;
@@ -83,7 +84,9 @@ bool initData() {
 	monkey = new Mesh();
 	objLoader->load_obj("resources/teddy.obj", monkey);
 	monkey->upload();
-	renderComponent = new RenderableComponent(monkey);
+
+	renderComponent = new RenderableComponent(monkey,glm::vec3(20.0, -30.0, -90.0));
+	renderComponent2 = new RenderableComponent(monkey,glm::vec3(-20.0, -30.0, -90.0));
 
 	if (!shaderProgram->bind()) {
 		return EXIT_FAILURE;
@@ -97,6 +100,15 @@ bool initData() {
 
 void render() {
 	soundManager->update();
+	// Enable alpha
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	/* Clear the background as white */
+	glClearColor(1.0, 1.0, 1.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	renderComponent2->render(shaderProgram, window);
 	renderComponent->render(shaderProgram, window);
 
 	if (showFps) {
@@ -112,6 +124,7 @@ void freeMemory() {
 	delete monkey;
 	delete objLoader;
 	delete renderComponent;
+	delete renderComponent2;
 }
 
 int main(int argc, char** argv) {

@@ -8,13 +8,14 @@
 #include "renderablecomponent.h"
 #include "objloader.h"
 #include "GLFW/glfw3.h"
-#include "glm/glm.hpp"
+
 #include "glm/gtc/matrix_transform.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
 /** Constructor */
-RenderableComponent::RenderableComponent(Mesh* mesh) {
+RenderableComponent::RenderableComponent(Mesh* mesh, glm::vec3 position) {
 	this->mesh = mesh;
+	this->position = position;
 }
 
 RenderableComponent::~RenderableComponent() {
@@ -23,7 +24,7 @@ RenderableComponent::~RenderableComponent() {
 void RenderableComponent::render(ShaderProgram* shaderProgram, Window* window) {
 	double currentTime = glfwGetTime();
 	glm::mat4 model = glm::translate(glm::mat4(1.0f),
-			glm::vec3(0.0, -10.0, -30.0));
+			this->position);
 	  float angle = currentTime * 2;  // base 15° per second
 	  glm::mat4 anim = \
 	    glm::rotate(glm::mat4(1.0f), angle*3.0f, glm::vec3(1, 0, 0)) *  // X axis

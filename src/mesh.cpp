@@ -45,16 +45,6 @@ void Mesh::upload() {
 }
 
 void Mesh::render(ShaderProgram* shaderProgram) {
-	GLuint program = shaderProgram->getProgram();
-
-	// Enable alpha
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	/* Clear the background as white */
-	glClearColor(1.0, 1.0, 1.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glClear(GL_DEPTH_BUFFER_BIT);
 	glUseProgram(shaderProgram->getProgram());
 
 	glEnableVertexAttribArray(shaderProgram->getAttributeCoord3d());

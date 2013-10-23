@@ -10,12 +10,14 @@
 
 #include "mesh.h"
 #include "window.h"
+#include "glm/glm.hpp"
 
 class RenderableComponent {
 	Mesh* mesh;
+	glm::vec3 position;
 
 public:
-	RenderableComponent(Mesh* mesh);
+	RenderableComponent(Mesh* mesh, glm::vec3 position);
 	virtual ~RenderableComponent();
 	void render(ShaderProgram* shaderProgram, Window* window);
 };
